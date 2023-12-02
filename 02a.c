@@ -1,80 +1,88 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_RED   12
-#define MAX_GREEN 13
-#define MAX_BLUE  14
+enum token {
+	T_GAME  = 'G',          /* Beginning of the game, value is game ID */
+	T_RED   = 'r',          /* Red cubes, value is number of cubes */
+	T_GREEN = 'g',          /* Green cubes, value is number of cubes */
+	T_BLUE  = 'b',          /* Blue cubes, value is number of cubes */
+	T_NEXT  = ',',          /* We expect to grab more cubes, no value */
+	T_SET   = ';',          /* End of the game set, value unchanged  */
+	T_END   = '\n',         /* End of the game, no value */
+};
 
-/* T_NUL means end of the game set. */
-enum token { T_NUL = 0, T_GAME, T_RED, T_GREEN, T_BLUE };
+/* The maximum number of cubes in each color. */
+static int s_max[] = {
+	[T_RED]   = 12,
+	[T_GREEN] = 13,
+	[T_BLUE]  = 14,
+	0,
+};
 
-static size_t get_token(char *str, enum token *token, int *value)
+/* How many bytes to skip in order to get to next token. */
+static int s_skip[] = {
+	[T_GAME]  = 2,
+	[T_RED]   = 3,
+	[T_GREEN] = 5,
+	[T_BLUE]  = 4,
+	[T_SET]   = 2,
+	[T_NEXT]  = 2,
+	[T_END]   = 0,
+};
+
+/* Check what is the current TOKEN in STR string.  Set TOKEN VALUE.
+ * Return number of bytes to advance in STR. */
+static int get_token(char *str, enum token *token, int *value)
 {
-	size_t i = 0;
+	int i = 0;
 	switch (str[0]) {
-	case '\n':
-		return 0;
-	case ';':
-		*token = T_NUL;
-		return 2;
-	case 'G':
-		*token = T_GAME;
+	case T_GAME:
 		i = 5;
 		*value = atoi(str + i);
-		while (str[i++] != ':');
-		return i + 1;
-	case ',':
-		i += 2;
-		break;
+		while (str[++i] != ':');
+		/* fallthrough */
+	case T_SET:
+	case T_NEXT:
+	case T_END:
+		*token = str[0];
+		return i + s_skip[*token];
 	}
 	*value = atoi(str + i);
 	while (str[i++] != ' ');
-	switch (str[i]) {
-	case 'r': *token = T_RED;   break;
-	case 'g': *token = T_GREEN; break;
-	case 'b': *token = T_BLUE;  break;
-	}
-	while (str[i] != ',' &&
-	       str[i] != ';' &&
-	       str[i] != '\n') i++;
+	*token = str[i];
+	i += s_skip[*token];
 	return i;
 }
 
 int main(void)
 {
-	int i = 0, skip, id, value, sum = 0;
+	int i = 0, id, value, sum = 0;
 	enum token token;
 	char buf[BUFSIZ];
 	while (fgets(buf, sizeof(buf), stdin)) {
-		/* printf("%s", buf); */
 		i = 0;
-		while ((skip = get_token(buf + i, &token, &value))) {
+		while ((i += get_token(buf + i, &token, &value))) {
 			switch (token) {
-			case T_NUL:
-				break;
 			case T_GAME:
 				id = value;
 				break;
 			case T_RED:
-				if (value > MAX_RED) {
-					goto skip;
-				}
-				break;
 			case T_GREEN:
-				if (value > MAX_GREEN) {
-					goto skip;
-				}
-				break;
 			case T_BLUE:
-				if (value > MAX_BLUE) {
-					goto skip;
+				if (value > s_max[token]) {
+					goto impossible;
 				}
 				break;
+			case T_NEXT:
+			case T_SET:
+				break;
+			case T_END:
+				goto possible;
 			}
-			i += skip;
 		}
+	possible:
 		sum += id;
-	skip:
+	impossible:
 		continue;
 	}
 	printf("%d\n", sum);
