@@ -4,9 +4,11 @@ set -e # Stop on first error
 CC="cc"
 CFLAGS="-Wall -Wextra -Wshadow -Wmissing-declarations -Wswitch-enum -pedantic -std=c89"
 
+mkdir -p bin
+
 # Build all programs
 for src in `ls *.c`
 do
     out=$( echo $src | sed 's/.c//' )
-    $CC $CFLAGS -o $out $src
+    $CC $CFLAGS -o bin/$out $src
 done
