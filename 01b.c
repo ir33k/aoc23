@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char digit(char *str)
+static char digit(char *str)
 {
 	size_t len = strlen(str);
 	if (*str >= '0' && *str <= '9') return *str;

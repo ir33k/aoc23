@@ -1,9 +1,12 @@
 #!/usr/bin/env sh
-set -ex # Stop on first error and log all commands
+set -e # Stop on first error
 
 CC="cc"
 CFLAGS="-Wall -Wextra -Wshadow -Wmissing-declarations -Wswitch-enum -pedantic -std=c89"
 
-# Build solution for each day
-$CC $CFLAGS -o 01a 01a.c
-$CC $CFLAGS -o 01b 01b.c
+# Build all programs
+for src in `ls *.c`
+do
+    out=$( echo $src | sed 's/.c//' )
+    $CC $CFLAGS -o $out $src
+done
