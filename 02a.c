@@ -56,25 +56,21 @@ static int get_token(char *str, enum token *token, int *value)
 
 int main(void)
 {
-	int i = 0, id, value, sum = 0;
-	enum token token;
+	int i = 0, id, v, sum = 0;
+	enum token t;
 	char buf[BUFSIZ];
 	while (fgets(buf, sizeof(buf), stdin)) {
-		i = 0;
-		while ((i += get_token(buf + i, &token, &value))) {
-			switch (token) {
+		for (i = 0; (i += get_token(buf + i, &t, &v));) {
+			switch ((int)t) {
 			case T_GAME:
-				id = value;
+				id = v;
 				break;
 			case T_RED:
 			case T_GREEN:
 			case T_BLUE:
-				if (value > s_max[token]) {
+				if (v > s_max[t]) {
 					goto impossible;
 				}
-				break;
-			case T_NEXT:
-			case T_SET:
 				break;
 			case T_END:
 				goto possible;
