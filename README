@@ -2,7 +2,7 @@ Advent of Code 2023
 
 Build and run:
 
-	$ ./build          # Build all programs
-	$ ./01a <01a.in    # Run day 01 first part
-	$ ./01b <01b.in    # Run day 01 second part
-	$ ./01a <01.in     # Run day 01 first part with final puzzle input
+	$ ./build               # Build all programs
+	$ ./bin/01a <01a.in     # Run day 01 first part
+	$ ./bin/01b <01b.in     # Run day 01 second part
+	$ ./bin/01a <01.in      # Run day 01 first part with final puzzle input
