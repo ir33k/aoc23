@@ -1,8 +1,14 @@
-Advent of Code 2023
+                                 ___
+                               _|___|_
+                               (' < ')
+                            >-(   o   )-<
+                        _____(    o    )_____
+                         Advent of Code 2023
 
 Build and run:
 
-	$ ./build               # Build all programs
-	$ ./bin/01a <01a.in     # Run day 01 first part
-	$ ./bin/01b <01b.in     # Run day 01 second part
-	$ ./bin/01a <01.in      # Run day 01 first part with final puzzle input
+	$ ./build                   # Build all binaries
+	$ cd 01                     # Go to day 1
+	$ ./part1.bin < example     # Run part 1 with example input
+	$ ./part2.bin < example2    # Run part 2 with second example
+	$ ./part1.bin < input       # Run part 1 with main puzzle input
