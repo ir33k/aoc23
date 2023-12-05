@@ -12,3 +12,4 @@ Build and run:
 	$ ./part1.bin < example     # Run part 1 with example input
 	$ ./part2.bin < example2    # Run part 2 with second example
 	$ ./part1.bin < input       # Run part 1 with main puzzle input
+	$ ./test.bin                # Run tests for day 1
