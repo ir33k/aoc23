@@ -25,7 +25,7 @@ int main(void)
 {
 	char buf[BSIZ], lr[BUFSIZ];
 	struct node node[1024] = {0};
-	int i,j, b, len, lr_max, beg, end;
+	int i,j, b, len=0, lr_max, beg, end;
 	fgets(lr, sizeof(lr), stdin);
 	lr_max = strlen(lr) - 1;
 	for (i = 0; i < lr_max; i++) {
