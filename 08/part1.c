@@ -2,42 +2,58 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define MHM_IMPLEMENTATION
-#include "../mhm.h"
 
 #define BSIZ (16 * 1024)
 
 struct node {
-	char *key[2];
+	char *key;
+	int child[2];           /* [left, right] */
 };
+
+static int index_of(struct node *node, char *find)
+{
+	int i;
+	for (i = 0; node[i].key; i++) {
+		if (!strcmp(node[i].key, find)) {
+			return i;
+		}
+	}
+	return -1;
+}
 
 int main(void)
 {
-	char buf[BSIZ], lr[BUFSIZ], *key;
-	struct node *node;
-	int i, lr_len;
-	size_t len;
-	Mhm hm;
-	mhm_init(&hm, 2048, mhm_hash_djb2);
+	char buf[BSIZ], lr[BUFSIZ];
+	struct node node[1024] = {0};
+	int i,j, b, len, lr_max, beg, end;
 	fgets(lr, sizeof(lr), stdin);
-	lr_len = strlen(lr) - 1;
+	lr_max = strlen(lr) - 1;
+	for (i = 0; i < lr_max; i++) {
+		lr[i] = lr[i] == 'R';
+	}
 	fgets(buf, sizeof(buf), stdin);
 	while ((i = fread(buf, 1, sizeof(buf), stdin))) len += i;
 	buf[len] = 0;
-	for (i = 0; buf[i]; i += 17) {
-		node = malloc(sizeof(node));
-		buf[i +  3] = 0;
-		buf[i + 10] = 0;
-		buf[i + 15] = 0;
-		node->key[0] = buf + i + 7;  /* Left */
-		node->key[1] = buf + i + 12; /* Right */
-		mhm_set(&hm, buf + i, node);
+	for (i = 0, b = 0; buf[b]; b += 17) {
+		buf[b +  3] = 0;
+		buf[b + 10] = 0;
+		buf[b + 15] = 0;
+		if (!strcmp(buf + b, "AAA")) {
+			beg = i;
+		}
+		if (!strcmp(buf + b, "ZZZ")) {
+			end = i;
+		}
+		node[i++].key = buf + b;
 	}
-	key = "AAA";
-	for (i = 0; strcmp(key, "ZZZ"); i++) {
-		node = mhm_get(&hm, key);
-		key = node->key[lr[i % lr_len] == 'R'];
+	for (i = 0, b = 0; buf[b]; b += 17, i++) {
+		node[i].child[0] = index_of(node, buf + b + 7);
+		node[i].child[1] = index_of(node, buf + b + 12);
 	}
-	printf("%d\n", i);
+	i = beg;
+	for (j = 0; i != end; j++) {
+		i = node[i].child[(int)lr[j % lr_max]];
+	}
+	printf("%d\n", j);
 	return 0;
 }
