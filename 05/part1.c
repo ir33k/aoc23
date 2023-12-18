@@ -43,7 +43,6 @@ static unsigned map_get(struct map *map, int i, int siz, unsigned id)
 	return id;
 }
 
-
 int main(void)
 {
 	struct map map[MAP_MAX];
