@@ -1,17 +1,13 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#define MAP_SIZ 7
-#define MAP_VMAX 64
+#define MAP_MAX 256
+#define MAP_COUNT 7
 
 typedef unsigned map_id_t;
 
 struct map {
-	struct {
-		map_id_t dst, src, len;
-	} v[MAP_VMAX];
-	int siz;
+	map_id_t dst, src, len;
 };
 
 static map_id_t parse_unsigned(char *str)
@@ -23,7 +19,7 @@ static map_id_t parse_unsigned(char *str)
 	return num;
 }
 
-static void map_parse(struct map *map)
+static int map_parse(struct map *map, int i)
 {
 	char buf[BUFSIZ], *bp;
 	fgets(buf, sizeof(buf), stdin);
@@ -31,21 +27,20 @@ static void map_parse(struct map *map)
 		if (buf[0] == '\n') {
 			break;
 		}
-		map->v[map->siz].dst = parse_unsigned(  bp); bp = strchr(bp, ' ');
-		map->v[map->siz].src = parse_unsigned(++bp); bp = strchr(bp, ' ');
-		map->v[map->siz].len = parse_unsigned(++bp);
-		map->siz++;
+		map[i].dst = parse_unsigned(  bp); bp = strchr(bp, ' ');
+		map[i].src = parse_unsigned(++bp); bp = strchr(bp, ' ');
+		map[i].len = parse_unsigned(++bp);
+		i++;
 	}
+	return i;
 }
 
-static map_id_t map_get(struct map *map, map_id_t id)
+static map_id_t map_get(struct map *map, int i, int siz, map_id_t id)
 {
-	int i;
-	for (i = 0; i < map->siz; i++) {
-		if (id < map->v[i].src || id >= map->v[i].src + map->v[i].len) {
-			continue;
+	for (; i < siz; i++) {
+		if (id >= map[i].src && id < map[i].src + map[i].len) {
+			return  map[i].dst + (id - map[i].src);
 		}
-		return  map->v[i].dst + (id - map->v[i].src);
 	}
 	return id;
 }
@@ -53,7 +48,8 @@ static map_id_t map_get(struct map *map, map_id_t id)
 
 int main(void)
 {
-	struct map map[MAP_SIZ] = {0};
+	struct map map[MAP_MAX];
+	int mapi[MAP_COUNT+1] = {0};
 	map_id_t id, seeds[32];
 	map_id_t location = -1; /* Force integer overflow to init with biggest value. */
 	int m, i, seeds_siz;
@@ -63,12 +59,12 @@ int main(void)
 		seeds[seeds_siz] = parse_unsigned(++bp);
 	}
 	fgets(buf, sizeof(buf), stdin);
-	for (m = 0; m < MAP_SIZ; m++) {
-		map_parse(&map[m]);
+	for (m = 0; m < MAP_COUNT; m++) {
+		mapi[m+1] = map_parse(map, mapi[m]);
 	}
 	for (i = 0; i < seeds_siz; i++) {
-		for (id = seeds[i], m = 0; m < MAP_SIZ; m++) {
-			id = map_get(&map[m], id);
+		for (id = seeds[i], m = 0; m < MAP_COUNT; m++) {
+			id = map_get(map, mapi[m], mapi[m+1], id);
 		}
 		if (id < location) {
 			location = id;
