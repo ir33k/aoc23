@@ -3,7 +3,8 @@
 TEST("Day 05 part 1")
 {
 	RUN("./part1.bin", "./example", S2F("35\n"), 0, 0);
-	RUN("./part1.bin", "./input", S2F("322500873\n"), 0, 0);
+	RUN("./part1.bin", "./input",   S2F("322500873\n"), 0, 0);
+	RUN("./part1.bin", "./input2",  S2F("289863851\n"), 0, 0);
 }
 
 TEST("Day 05 part 2")
