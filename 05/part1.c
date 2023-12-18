@@ -4,15 +4,13 @@
 #define MAP_MAX 256
 #define MAP_COUNT 7
 
-typedef unsigned map_id_t;
-
 struct map {
-	map_id_t dst, src, len;
+	unsigned dst, src, len;
 };
 
-static map_id_t parse_unsigned(char *str)
+static unsigned parse_unsigned(char *str)
 {
-	map_id_t num = 0;
+	unsigned num = 0;
 	while (*str >= '0' && *str <= '9') {
 		num = 10*num + (0x0F & *(str++));
 	}
@@ -35,7 +33,7 @@ static int map_parse(struct map *map, int i)
 	return i;
 }
 
-static map_id_t map_get(struct map *map, int i, int siz, map_id_t id)
+static unsigned map_get(struct map *map, int i, int siz, unsigned id)
 {
 	for (; i < siz; i++) {
 		if (id >= map[i].src && id < map[i].src + map[i].len) {
@@ -49,10 +47,9 @@ static map_id_t map_get(struct map *map, int i, int siz, map_id_t id)
 int main(void)
 {
 	struct map map[MAP_MAX];
-	int mapi[MAP_COUNT+1] = {0};
-	map_id_t id, seeds[32];
-	map_id_t location = -1; /* Force integer overflow to init with biggest value. */
-	int i, seeds_siz;
+	unsigned id, seeds[32];
+	unsigned location = -1; /* Force integer overflow to init with biggest value. */
+	int i, seeds_siz, mapi[MAP_COUNT+1] = {0};
 	char buf[BUFSIZ], *bp;
 	bp = fgets(buf, sizeof(buf), stdin);
 	for (seeds_siz = 0; (bp = strchr(bp, ' ')); seeds_siz++) {
