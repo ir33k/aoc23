@@ -52,20 +52,29 @@ int main(void)
 	int mapi[MAP_COUNT+1] = {0};
 	map_id_t id, seeds[32];
 	map_id_t location = -1; /* Force integer overflow to init with biggest value. */
-	int m, i, seeds_siz;
+	int i, seeds_siz;
 	char buf[BUFSIZ], *bp;
 	bp = fgets(buf, sizeof(buf), stdin);
 	for (seeds_siz = 0; (bp = strchr(bp, ' ')); seeds_siz++) {
 		seeds[seeds_siz] = parse_unsigned(++bp);
 	}
 	fgets(buf, sizeof(buf), stdin);
-	for (m = 0; m < MAP_COUNT; m++) {
-		mapi[m+1] = map_parse(map, mapi[m]);
-	}
+	mapi[1] = map_parse(map, mapi[0]);
+	mapi[2] = map_parse(map, mapi[1]);
+	mapi[3] = map_parse(map, mapi[2]);
+	mapi[4] = map_parse(map, mapi[3]);
+	mapi[5] = map_parse(map, mapi[4]);
+	mapi[6] = map_parse(map, mapi[5]);
+	mapi[7] = map_parse(map, mapi[6]);
 	for (i = 0; i < seeds_siz; i++) {
-		for (id = seeds[i], m = 0; m < MAP_COUNT; m++) {
-			id = map_get(map, mapi[m], mapi[m+1], id);
-		}
+		id = seeds[i];
+		id = map_get(map, mapi[0], mapi[1], id);
+		id = map_get(map, mapi[1], mapi[2], id);
+		id = map_get(map, mapi[2], mapi[3], id);
+		id = map_get(map, mapi[3], mapi[4], id);
+		id = map_get(map, mapi[4], mapi[5], id);
+		id = map_get(map, mapi[5], mapi[6], id);
+		id = map_get(map, mapi[6], mapi[7], id);
 		if (id < location) {
 			location = id;
 		}
