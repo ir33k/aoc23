@@ -2,13 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAPSIZ 7
+#define MAP_SIZ 7
+#define MAP_VMAX 64
 
-typedef unsigned long map_id_t;
+typedef unsigned map_id_t;
 
 struct map {
-	map_id_t src, dst, len;
-	struct map *next;       /* Linked list FTW!!! (^-^ ) */
+	struct {
+		map_id_t dst, src, len;
+	} v[MAP_VMAX];
+	int siz;
 };
 
 static map_id_t parse_unsigned(char *str)
@@ -20,33 +23,29 @@ static map_id_t parse_unsigned(char *str)
 	return num;
 }
 
-static struct map *map_parse(void)
+static void map_parse(struct map *map)
 {
-	struct map *head = 0;
-	struct map *node = 0;
 	char buf[BUFSIZ], *bp;
 	fgets(buf, sizeof(buf), stdin);
-	node = head = malloc(sizeof(struct map));
 	while ((bp = fgets(buf, sizeof(buf), stdin))) {
 		if (buf[0] == '\n') {
 			break;
 		}
-		node = node->next = malloc(sizeof(struct map));
-		node->dst = parse_unsigned(  bp); bp = strchr(bp, ' ');
-		node->src = parse_unsigned(++bp); bp = strchr(bp, ' ');
-		node->len = parse_unsigned(++bp);
+		map->v[map->siz].dst = parse_unsigned(  bp); bp = strchr(bp, ' ');
+		map->v[map->siz].src = parse_unsigned(++bp); bp = strchr(bp, ' ');
+		map->v[map->siz].len = parse_unsigned(++bp);
+		map->siz++;
 	}
-	return head;
 }
 
 static map_id_t map_get(struct map *map, map_id_t id)
 {
-	struct map *node;
-	for (node = map->next; node; node = node->next) {
-		if (id < node->src || id >= node->src + node->len) {
+	int i;
+	for (i = 0; i < map->siz; i++) {
+		if (id < map->v[i].src || id >= map->v[i].src + map->v[i].len) {
 			continue;
 		}
-		return node->dst + (id - node->src);
+		return  map->v[i].dst + (id - map->v[i].src);
 	}
 	return id;
 }
@@ -54,7 +53,7 @@ static map_id_t map_get(struct map *map, map_id_t id)
 
 int main(void)
 {
-	struct map *map[MAPSIZ];
+	struct map map[MAP_SIZ] = {0};
 	map_id_t id, seeds[32];
 	map_id_t location = -1; /* Force integer overflow to init with biggest value. */
 	int m, i, seeds_siz;
@@ -64,17 +63,17 @@ int main(void)
 		seeds[seeds_siz] = parse_unsigned(++bp);
 	}
 	fgets(buf, sizeof(buf), stdin);
-	for (m = 0; m < MAPSIZ; m++) {
-		map[m] = map_parse();
+	for (m = 0; m < MAP_SIZ; m++) {
+		map_parse(&map[m]);
 	}
 	for (i = 0; i < seeds_siz; i++) {
-		for (id = seeds[i], m = 0; m < MAPSIZ; m++) {
-			id = map_get(map[m], id);
+		for (id = seeds[i], m = 0; m < MAP_SIZ; m++) {
+			id = map_get(&map[m], id);
 		}
 		if (id < location) {
 			location = id;
 		}
 	}
-	printf("%lu\n", location);
+	printf("%u\n", location);
 	return 0;
 }
