@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define MAP_MAX 256
@@ -9,7 +10,7 @@ struct seed {
 };
 
 struct map {
-	unsigned dst, src, len;
+	unsigned dst, src, max;
 };
 
 static unsigned parse_unsigned(char *str)
@@ -31,7 +32,7 @@ static int map_parse(struct map *map, int i)
 		}
 		map[i].dst = parse_unsigned(  bp); bp = strchr(bp, ' ');
 		map[i].src = parse_unsigned(++bp); bp = strchr(bp, ' ');
-		map[i].len = parse_unsigned(++bp);
+		map[i].max = parse_unsigned(++bp) + map[i].src;
 		i++;
 	}
 	return i;
@@ -40,11 +41,22 @@ static int map_parse(struct map *map, int i)
 static unsigned map_get(struct map *map, int i, int siz, unsigned id)
 {
 	for (; i < siz; i++) {
-		if (id >= map[i].src && id < map[i].src + map[i].len) {
+		if (id < map[i].src) {
+			return id;
+		}
+		if (id < map[i].max) {
 			return  map[i].dst + (id - map[i].src);
 		}
 	}
 	return id;
+}
+
+static int map_qsort(struct map *a, struct map *b)
+{
+	long int res = ((long int)a->src) - ((long int)b->src);
+	if (res < 0) return -1;
+	if (res > 0) return  1;
+	return 0;
 }
 
 int main(void)
@@ -63,17 +75,19 @@ int main(void)
 		seeds_siz++;
 	}
 	fgets(buf, sizeof(buf), stdin);
-	mapi[1] = map_parse(map, mapi[0]);
-	mapi[2] = map_parse(map, mapi[1]);
-	mapi[3] = map_parse(map, mapi[2]);
-	mapi[4] = map_parse(map, mapi[3]);
-	mapi[5] = map_parse(map, mapi[4]);
-	mapi[6] = map_parse(map, mapi[5]);
-	mapi[7] = map_parse(map, mapi[6]);
+	for (i = 0; i < MAP_COUNT; i++) {
+		mapi[i+1] = map_parse(map, mapi[i]);
+	}
+	for (i = 0; i < MAP_COUNT; i++) {
+		qsort(map + mapi[i], mapi[i+1] - mapi[i], sizeof(map[0]),
+		      (int (*)(const void *, const void *))map_qsort);
+	}
+	/* for (i = 0; i < mapi[7]; i++) { */
+	/* 	printf("%u\n", map[i].src); */
+	/* } */
 	for (i = 0; i < seeds_siz; i++) {
 		for (beg = seeds[i].beg; beg < seeds[i].end; beg++) {
-			id = beg;
-			id = map_get(map, mapi[0], mapi[1], id);
+			id = map_get(map, mapi[0], mapi[1], beg);
 			id = map_get(map, mapi[1], mapi[2], id);
 			id = map_get(map, mapi[2], mapi[3], id);
 			id = map_get(map, mapi[3], mapi[4], id);
