@@ -38,11 +38,15 @@ static int map_parse(struct map *map, int i)
 	return i;
 }
 
-static unsigned map_get(struct map *map, int i, int siz, unsigned id)
+static unsigned map_get(struct map *map, int beg, int end, unsigned id)
 {
-	for (; i < siz; i++) {
+	int i, step = (end - beg) / 2;
+	for (i = beg + step; step && id < map[i].src;) {
+		i = beg + (step /= 2);
+	}
+	for (; i < end; i++) {
 		if (id < map[i].src) {
-			return id;
+			break;
 		}
 		if (id < map[i].max) {
 			return  map[i].dst + (id - map[i].src);
