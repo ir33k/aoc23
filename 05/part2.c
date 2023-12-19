@@ -1,6 +1,10 @@
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/shm.h>
+#include <sys/wait.h>
 
 #define MAP_MAX 256
 #define MAP_COUNT 7
@@ -68,9 +72,17 @@ int main(void)
 	struct map map[MAP_MAX];
 	struct seed seeds[16];
 	unsigned id, beg;
-	unsigned location = -1; /* Force integer overflow to init with biggest value. */
-	int i, seeds_siz = 0, mapi[MAP_COUNT+1] = {0};
+	unsigned res = -1, *location; /* Force integer overflow to init with biggest value. */
+	int i, seeds_siz = 0, mapi[MAP_COUNT+1] = {0}, shmid;
+	pid_t pid[16];
 	char buf[BUFSIZ], *bp;
+	if ((shmid = shmget(0, sizeof(unsigned) * 16, 0666 | IPC_CREAT)) == -1) {
+		err(1, "shmget");
+	}
+	if ((location = shmat(shmid, 0, 0)) == (void *)-1) {
+		err(1, "shmat");
+	}
+	memset(location, (unsigned)-1, sizeof(unsigned) * 16);
 	bp = fgets(buf, sizeof(buf), stdin);
 	while ((bp = strchr(bp, ' '))) {
 		seeds[seeds_siz].beg = parse_unsigned(++bp);
@@ -86,10 +98,14 @@ int main(void)
 		qsort(map + mapi[i], mapi[i+1] - mapi[i], sizeof(map[0]),
 		      (int (*)(const void *, const void *))map_qsort);
 	}
-	/* for (i = 0; i < mapi[7]; i++) { */
-	/* 	printf("%u\n", map[i].src); */
-	/* } */
 	for (i = 0; i < seeds_siz; i++) {
+		if ((pid[i] = fork()) == -1) {
+			err(1, "fork");
+		}
+		if (pid[i]) {   /* Parent */
+			continue;
+		}
+		/* Child */
 		for (beg = seeds[i].beg; beg < seeds[i].end; beg++) {
 			id = map_get(map, mapi[0], mapi[1], beg);
 			id = map_get(map, mapi[1], mapi[2], id);
@@ -98,11 +114,20 @@ int main(void)
 			id = map_get(map, mapi[4], mapi[5], id);
 			id = map_get(map, mapi[5], mapi[6], id);
 			id = map_get(map, mapi[6], mapi[7], id);
-			if (id < location) {
-				location = id;
+			if (id < location[i]) {
+				location[i] = id;
 			}
 		}
+		return 0;
 	}
-	printf("%u\n", location);
+	for (i = 0; i < seeds_siz; i++) {
+		if (waitpid(pid[i], 0, 0) == -1) {
+			err(1, "waitpid %d", i);
+		}
+		if (location[i] < res) {
+			res = location[i];
+		}
+	}
+	printf("%u\n", res);
 	return 0;
 }
